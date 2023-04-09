@@ -18,7 +18,7 @@ export const AudioPlayer: FC<AudioPlayerProps> = (props) => {
       mediaSource.addEventListener('sourceopen', async () => {
         const sourceBuffer = mediaSource.addSourceBuffer('audio/mpeg');
         const audioReader = await fetch(
-          'http://101.43.199.9:5000/tts/stream/tts/stream',
+          'https://edge-tts-as-a-service.doctoroyy.repl.co/tts/stream',
           {
             method: 'POST',
             headers: {
