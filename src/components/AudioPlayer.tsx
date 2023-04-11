@@ -15,9 +15,21 @@ export const AudioPlayer: FC<AudioPlayerProps> = (props) => {
       const mediaSource = new MediaSource();
       const url = URL.createObjectURL(mediaSource);
       audioRef.current.src = url;
+
       mediaSource.addEventListener('sourceopen', async () => {
         const sourceBuffer = mediaSource.addSourceBuffer('audio/mpeg');
-        const audioReader = await fetch(
+        const buff: Uint8Array[] = [];
+        let isReady = true;
+
+        sourceBuffer.addEventListener('updateend', () => {
+          if (buff.length > 0) {
+            sourceBuffer.appendBuffer(buff.shift() as Uint8Array);
+          } else {
+            isReady = true;
+          }
+        });
+
+        const response = await fetch(
           'https://edge-tts-as-a-service.doctoroyy.repl.co/tts/stream',
           {
             method: 'POST',
@@ -30,23 +42,33 @@ export const AudioPlayer: FC<AudioPlayerProps> = (props) => {
           }
         );
 
-        const reader = audioReader.body?.getReader();
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const reader = response.body?.getReader();
+
+        if (!reader) {
+          return;
+        }
 
         const pump = async () => {
-          if (reader) {
-            const { done, value } = await reader.read();
-            if (done) {
-              mediaSource.endOfStream();
-              sourceBuffer.abort();
-            } else {
+          const { done, value } = await reader.read();
+          if (done) {
+            mediaSource.endOfStream();
+            sourceBuffer.abort();
+          } else {
+            if (isReady) {
               sourceBuffer.appendBuffer(value);
-              if (audioRef.current?.paused) {
-                audioRef.current.play();
-              }
-              pump();
+              audioRef.current?.play();
+              isReady = false;
+            } else {
+              buff.push(value);
             }
+            await pump();
           }
         };
+
         pump();
       });
     }
