@@ -37,7 +37,7 @@ export const AudioPlayer: FC<AudioPlayerProps> = (props) => {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              text: decodeURIComponent(text),
+              text,
             }),
           }
         );
