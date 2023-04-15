@@ -1,11 +1,7 @@
 import { Button, Input, Layout, Row, Space, message } from 'antd';
 import React, { FC, useState } from 'react';
 
-interface AudioPlayerProps {
-  [key: string]: any;
-}
-
-export const AudioPlayer: FC<AudioPlayerProps> = (props) => {
+export const AudioPlayer: FC = () => {
   const [text, setText] = useState('');
 
   const audioRef = React.useRef<HTMLAudioElement>(null);
@@ -13,21 +9,27 @@ export const AudioPlayer: FC<AudioPlayerProps> = (props) => {
 
   const play = () => {
     if (audioRef.current) {
-      const mediaSource = new MediaSource();
-      mediaSourceRef.current = mediaSource;
-      const url = URL.createObjectURL(mediaSource);
+      try {
+        mediaSourceRef.current = new MediaSource();
+      } catch (e) {
+        console.log(e);
+        message.error('MediaSource API is not supported by your browser');
+        return;
+      }
+
+      const url = URL.createObjectURL(mediaSourceRef.current);
       audioRef.current.src = url;
       let isReady = true;
       let isDone = false;
       const buff: Uint8Array[] = [];
-      mediaSource.addEventListener('sourceopen', async () => {
-        const sourceBuffer = mediaSource.addSourceBuffer('audio/mpeg');
+      mediaSourceRef.current.addEventListener('sourceopen', async () => {
+        const sourceBuffer = mediaSourceRef.current!.addSourceBuffer('audio/mpeg');
         sourceBuffer.addEventListener('updateend', () => {
           if (buff.length > 0) {
             sourceBuffer.appendBuffer(buff.shift() as Uint8Array);
           } else {
             if (isDone) {
-              mediaSource.endOfStream();
+              mediaSourceRef.current!.endOfStream();
               sourceBuffer.abort();
             } else {
               isReady = true;
@@ -116,7 +118,7 @@ export const AudioPlayer: FC<AudioPlayerProps> = (props) => {
         <Input.TextArea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="请输入小说正文"
+          placeholder="Enter text to convert to speech"
           autoSize={{ minRows: 10, maxRows: 20 }}
         />
         <Row gutter={16}>
