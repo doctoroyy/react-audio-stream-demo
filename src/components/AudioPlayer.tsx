@@ -1,12 +1,27 @@
-import { Button, Input, Layout, Row, Space, message } from 'antd';
-import React, { FC, useState } from 'react';
+import React, { FC, useMemo, useState } from 'react';
+import { Button, Input, Layout, Row, Select, Space, message } from 'antd';
+import { fetchAudioBlob, fetchAudioStream } from '../queries';
+import { downloadFile } from '../utils/download';
+import { useVoices } from '../hooks/useVoices';
+import { DEFAULT_VOICE } from '../constants';
 
-const DEFAULT_API_PREFIX = '/tts/proxy';
 export const AudioPlayer: FC = () => {
   const [text, setText] = useState('');
+  const [voice, setVoice] = useState(DEFAULT_VOICE);
 
   const audioRef = React.useRef<HTMLAudioElement>(null);
   const mediaSourceRef = React.useRef<MediaSource>();
+
+  const voicesQuery = useVoices();
+
+  const options = useMemo(
+    () =>
+      voicesQuery.data?.map((voice) => ({
+        label: voice.ShortName,
+        value: voice.ShortName,
+      })) ?? [],
+    [voicesQuery.data]
+  );
 
   const play = () => {
     if (audioRef.current) {
@@ -24,7 +39,8 @@ export const AudioPlayer: FC = () => {
       let isDone = false;
       const buff: Uint8Array[] = [];
       mediaSourceRef.current.addEventListener('sourceopen', async () => {
-        const sourceBuffer = mediaSourceRef.current!.addSourceBuffer('audio/mpeg');
+        const sourceBuffer =
+          mediaSourceRef.current!.addSourceBuffer('audio/mpeg');
         sourceBuffer.addEventListener('updateend', () => {
           if (buff.length > 0) {
             sourceBuffer.appendBuffer(buff.shift() as Uint8Array);
@@ -38,21 +54,8 @@ export const AudioPlayer: FC = () => {
           }
         });
 
-        const response = await fetch(`${DEFAULT_API_PREFIX}/tts/stream`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            text,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        const reader = response.body?.getReader();
+        const response = await fetchAudioStream(text, voice);
+        const reader = response?.getReader();
 
         if (!reader) {
           return;
@@ -81,31 +84,10 @@ export const AudioPlayer: FC = () => {
 
   const download = async () => {
     message.loading('downloading...', 0);
-
     try {
-      const response = await fetch(`${DEFAULT_API_PREFIX}/tts`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          text,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      const blob = await response.blob();
+      const blob = await fetchAudioBlob(text, voice);
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'audio.mp3';
-      a.click();
-      setTimeout(() => {
-        window.URL.revokeObjectURL(url);
-      }, 0);
+      downloadFile(url, 'audio.mp3');
     } finally {
       message.destroy();
     }
@@ -115,16 +97,33 @@ export const AudioPlayer: FC = () => {
 
   return (
     <Layout>
-      <Layout.Content>
+      <Layout.Content
+        style={{
+          padding: 16,
+        }}
+      >
         <Input.TextArea
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Enter text to convert to speech"
           autoSize={{ minRows: 10, maxRows: 20 }}
         />
-        <Row gutter={16}>
+        <Row justify='center'>
           <audio ref={audioRef} controls />
         </Row>
+
+        <Row justify="center" gutter={16}>
+          <Select
+            options={options}
+            loading={voicesQuery.isFetching || voicesQuery.isLoading}
+            onChange={(value) => setVoice(value as string)}
+            style={{
+              width: 240,
+            }}
+            value={voice}
+          />
+        </Row>
+
         <Row justify="center" gutter={16}>
           <Space>
             <Button disabled={disable} onClick={play}>

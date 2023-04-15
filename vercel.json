@@ -30,8 +30,8 @@
   ],
   "redirects": [
     {
-      "source": "/tts/redirect",
-      "destination": "http://101.43.199.9:5000",
+      "source": "/tts/redirect/:path*",
+      "destination": "http://101.43.199.9:5000/:path*",
       "statusCode": 302
     }
   ]
