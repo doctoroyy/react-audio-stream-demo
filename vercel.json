@@ -1,0 +1,14 @@
+{
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Credentials", "value": "true" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "*" },
+        { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Socket-Id,X-Space-Id, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" }
+      ]
+    }
+  ],
+  "rewrites": [{ "source": "/tts/proxy/:match*", "destination": "http://101.43.199.9:5000/:match*" }]
+}

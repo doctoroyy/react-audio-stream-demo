@@ -1,6 +1,7 @@
 import { Button, Input, Layout, Row, Space, message } from 'antd';
 import React, { FC, useState } from 'react';
 
+const DEFAULT_API_PREFIX = '/tts/proxy';
 export const AudioPlayer: FC = () => {
   const [text, setText] = useState('');
 
@@ -37,7 +38,7 @@ export const AudioPlayer: FC = () => {
           }
         });
 
-        const response = await fetch('https://edge-tts-as-a-service.doctoroyy.repl.co/tts/stream', {
+        const response = await fetch(`${DEFAULT_API_PREFIX}/tts/stream`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -82,7 +83,7 @@ export const AudioPlayer: FC = () => {
     message.loading('downloading...', 0);
 
     try {
-      const response = await fetch('https://edge-tts-as-a-service.doctoroyy.repl.co/tts', {
+      const response = await fetch(`${DEFAULT_API_PREFIX}/tts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
