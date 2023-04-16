@@ -11,6 +11,7 @@ export const AudioPlayer: FC = () => {
 
   const audioRef = React.useRef<HTMLAudioElement>(null);
   const mediaSourceRef = React.useRef<MediaSource>();
+  const [isFetchingStream, setIsFetchingStream] = useState(false);
 
   const voicesQuery = useVoices();
 
@@ -24,6 +25,7 @@ export const AudioPlayer: FC = () => {
   );
 
   const play = () => {
+    setIsFetchingStream(true);
     if (audioRef.current) {
       try {
         mediaSourceRef.current = new MediaSource();
@@ -70,6 +72,7 @@ export const AudioPlayer: FC = () => {
           if (isReady) {
             sourceBuffer.appendBuffer(value);
             audioRef.current?.play();
+            setIsFetchingStream(false);
             isReady = false;
           } else {
             buff.push(value);
@@ -134,7 +137,7 @@ export const AudioPlayer: FC = () => {
 
           <Row justify="center">
             <Space>
-              <Button disabled={disable} onClick={play}>
+              <Button disabled={disable} onClick={play} loading={isFetchingStream} >
                 Play
               </Button>
               <Button disabled={disable} onClick={download}>
