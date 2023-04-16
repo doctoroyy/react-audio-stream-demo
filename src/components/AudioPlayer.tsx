@@ -99,43 +99,50 @@ export const AudioPlayer: FC = () => {
     <Layout>
       <Layout.Content
         style={{
-          padding: 16,
+          padding: 8,
         }}
       >
-        <Input.TextArea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Enter text to convert to speech"
-          autoSize={{ minRows: 10, maxRows: 20 }}
-        />
-        <Row justify='center'>
-          <audio ref={audioRef} controls />
-        </Row>
-
-        <Row justify="center" gutter={16}>
-          <Select
-            showSearch
-            optionFilterProp='label'
-            options={options}
-            loading={voicesQuery.isFetching || voicesQuery.isLoading}
-            onChange={(value) => setVoice(value as string)}
-            style={{
-              width: 240,
-            }}
-            value={voice}
+        <Space
+          direction="vertical"
+          style={{
+            width: '100%',
+          }}
+        >
+          <Input.TextArea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Enter text to convert to speech"
+            autoSize={{ minRows: 10, maxRows: 20 }}
           />
-        </Row>
+          <Row justify="center">
+            <audio ref={audioRef} controls />
+          </Row>
 
-        <Row justify="center" gutter={16}>
-          <Space>
-            <Button disabled={disable} onClick={play}>
-              Play
-            </Button>
-            <Button disabled={disable} onClick={download}>
-              Download MP3
-            </Button>
-          </Space>
-        </Row>
+          <Row justify="center">
+            <Select
+              showSearch
+              optionFilterProp="label"
+              options={options}
+              loading={voicesQuery.isFetching || voicesQuery.isLoading}
+              onChange={(value) => setVoice(value as string)}
+              style={{
+                width: 240,
+              }}
+              value={voice}
+            />
+          </Row>
+
+          <Row justify="center">
+            <Space>
+              <Button disabled={disable} onClick={play}>
+                Play
+              </Button>
+              <Button disabled={disable} onClick={download}>
+                Download MP3
+              </Button>
+            </Space>
+          </Row>
+        </Space>
       </Layout.Content>
     </Layout>
   );
