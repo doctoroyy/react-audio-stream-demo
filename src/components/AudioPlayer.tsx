@@ -114,6 +114,8 @@ export const AudioPlayer: FC = () => {
 
         <Row justify="center" gutter={16}>
           <Select
+            showSearch
+            optionFilterProp='label'
             options={options}
             loading={voicesQuery.isFetching || voicesQuery.isLoading}
             onChange={(value) => setVoice(value as string)}
