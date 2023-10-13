@@ -1,2 +1,0 @@
-/tts/proxy/* http://101.43.199.9:5000/:splat
-/google https://www.google.com/:splat
