@@ -27,12 +27,5 @@
       "source": "/tts/proxy/:match*",
       "destination": "http://101.43.199.9:5000/:match*"
     }
-  ],
-  "redirects": [
-    {
-      "source": "/tts/redirect/:path*",
-      "destination": "http://101.43.199.9:5000/:path*",
-      "statusCode": 302
-    }
   ]
 }
