@@ -129,9 +129,11 @@ export const EnhancedAudioControls: React.FC<EnhancedAudioControlsProps> = ({
   const VolumeIcon = getVolumeIcon();
 
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-4 space-y-4 ${className}`}>
+    <div className={`glass-card dark:glass-card-dark rounded-2xl p-6 space-y-6 relative overflow-hidden group ${className}`}>
+      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-pink-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+      
       {/* Progress Bar */}
-      <div className="space-y-2">
+      <div className="space-y-3 relative z-10">
         <Slider
           value={[currentTime]}
           max={duration || 100}
@@ -140,21 +142,26 @@ export const EnhancedAudioControls: React.FC<EnhancedAudioControlsProps> = ({
           disabled={!duration}
           className="w-full"
         />
-        <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400">
-          <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(duration)}</span>
+        <div className="flex justify-between text-sm font-medium">
+          <span className="px-2 py-1 bg-purple-500/20 text-purple-300 rounded-lg backdrop-blur-sm">
+            {formatTime(currentTime)}
+          </span>
+          <span className="px-2 py-1 bg-blue-500/20 text-blue-300 rounded-lg backdrop-blur-sm">
+            {formatTime(duration)}
+          </span>
         </div>
       </div>
 
       {/* Main Controls */}
-      <div className="flex items-center justify-center space-x-4">
+      <div className="flex items-center justify-center space-x-4 relative z-10">
         <Button
           variant="outline"
           size="icon"
           onClick={() => skip(-10)}
           disabled={!audioElement}
+          className="h-12 w-12 glass-card dark:glass-card-dark border-white/20 hover:bg-gradient-to-r hover:from-orange-500/20 hover:to-red-500/20 transition-all duration-300 hover:shadow-lg group/btn"
         >
-          <SkipBack className="h-4 w-4" />
+          <SkipBack className="h-5 w-5 text-white/80 group-hover/btn:text-orange-300 transition-colors" />
         </Button>
 
         <Button
@@ -162,12 +169,13 @@ export const EnhancedAudioControls: React.FC<EnhancedAudioControlsProps> = ({
           size="icon"
           onClick={togglePlayPause}
           disabled={!audioElement}
-          className="h-12 w-12"
+          className="h-16 w-16 bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 hover:from-purple-700 hover:via-pink-700 hover:to-red-700 border-0 shadow-2xl hover:shadow-purple-500/25 rounded-2xl transition-all duration-300 relative overflow-hidden group/play"
         >
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 opacity-0 group-hover/play:opacity-20 transition-opacity duration-300"></div>
           {isPlaying ? (
-            <Pause className="h-6 w-6" />
+            <Pause className="h-8 w-8 text-white relative z-10" />
           ) : (
-            <Play className="h-6 w-6" />
+            <Play className="h-8 w-8 text-white relative z-10" />
           )}
         </Button>
 
@@ -176,8 +184,9 @@ export const EnhancedAudioControls: React.FC<EnhancedAudioControlsProps> = ({
           size="icon"
           onClick={stop}
           disabled={!audioElement}
+          className="h-12 w-12 glass-card dark:glass-card-dark border-white/20 hover:bg-gradient-to-r hover:from-red-500/20 hover:to-pink-500/20 transition-all duration-300 hover:shadow-lg group/btn"
         >
-          <Square className="h-4 w-4" />
+          <Square className="h-5 w-5 text-white/80 group-hover/btn:text-red-300 transition-colors" />
         </Button>
 
         <Button
@@ -185,29 +194,38 @@ export const EnhancedAudioControls: React.FC<EnhancedAudioControlsProps> = ({
           size="icon"
           onClick={() => skip(10)}
           disabled={!audioElement}
+          className="h-12 w-12 glass-card dark:glass-card-dark border-white/20 hover:bg-gradient-to-r hover:from-blue-500/20 hover:to-indigo-500/20 transition-all duration-300 hover:shadow-lg group/btn"
         >
-          <SkipForward className="h-4 w-4" />
+          <SkipForward className="h-5 w-5 text-white/80 group-hover/btn:text-blue-300 transition-colors" />
         </Button>
       </div>
 
       {/* Volume Control */}
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-4 relative z-10">
         <Button
           variant="ghost"
           size="icon"
           onClick={toggleMute}
           disabled={!audioElement}
+          className="h-10 w-10 glass-card dark:glass-card-dark border-white/10 hover:bg-gradient-to-r hover:from-green-500/20 hover:to-teal-500/20 transition-all duration-300 group/vol"
         >
-          <VolumeIcon className="h-4 w-4" />
+          <VolumeIcon className="h-5 w-5 text-white/80 group-hover/vol:text-green-300 transition-colors" />
         </Button>
-        <Slider
-          value={[isMuted ? 0 : volume]}
-          max={1}
-          step={0.1}
-          onValueChange={handleVolumeChange}
-          disabled={!audioElement}
-          className="flex-1 max-w-32"
-        />
+        <div className="flex-1 max-w-40">
+          <Slider
+            value={[isMuted ? 0 : volume]}
+            max={1}
+            step={0.1}
+            onValueChange={handleVolumeChange}
+            disabled={!audioElement}
+            className="w-full"
+          />
+        </div>
+        <div className="w-12 text-right">
+          <span className="text-sm font-medium text-white/70">
+            {Math.round((isMuted ? 0 : volume) * 100)}%
+          </span>
+        </div>
       </div>
     </div>
   );
