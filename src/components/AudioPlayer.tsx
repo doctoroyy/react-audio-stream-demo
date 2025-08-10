@@ -1,9 +1,12 @@
 import React, { FC, useMemo, useState } from 'react';
-import { Button, Input, Layout, Row, Select, Space, message } from 'antd';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { fetchAudioBlob, fetchAudioStream } from '../queries';
 import { downloadFile } from '../utils/download';
 import { useVoices } from '../hooks/useVoices';
 import { DEFAULT_VOICE } from '../constants';
+import { PlayIcon, DownloadIcon, Loader2Icon } from 'lucide-react';
 
 export const AudioPlayer: FC = () => {
   const [text, setText] = useState('');
@@ -12,6 +15,7 @@ export const AudioPlayer: FC = () => {
   const audioRef = React.useRef<HTMLAudioElement>(null);
   const mediaSourceRef = React.useRef<MediaSource>();
   const [isFetchingStream, setIsFetchingStream] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const voicesQuery = useVoices();
 
@@ -31,7 +35,7 @@ export const AudioPlayer: FC = () => {
         mediaSourceRef.current = new MediaSource();
       } catch (e) {
         console.log(e);
-        message.error('MediaSource API is not supported by your browser');
+        alert('MediaSource API is not supported by your browser');
         return;
       }
 
@@ -86,67 +90,97 @@ export const AudioPlayer: FC = () => {
   };
 
   const download = async () => {
-    message.loading('downloading...', 0);
+    setIsDownloading(true);
     try {
       const blob = await fetchAudioBlob(text, voice);
       const url = window.URL.createObjectURL(blob);
       downloadFile(url, 'audio.mp3');
     } finally {
-      message.destroy();
+      setIsDownloading(false);
     }
   };
 
   const disable = text.length === 0;
 
   return (
-    <Layout>
-      <Layout.Content
-        style={{
-          padding: 8,
-        }}
-      >
-        <Space
-          direction="vertical"
-          style={{
-            width: '100%',
-          }}
-        >
-          <Input.TextArea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Enter text to convert to speech"
-            autoSize={{ minRows: 10, maxRows: 20 }}
-          />
-          <Row justify="center">
-            <audio ref={audioRef} controls />
-          </Row>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto p-8 max-w-4xl">
+        <div className="space-y-8">
+          <div className="text-center space-y-2">
+            <h1 className="text-4xl font-bold tracking-tight text-gray-900">Audio Stream Demo</h1>
+            <p className="text-gray-600 text-lg">
+              Convert text to speech with real-time streaming
+            </p>
+          </div>
 
-          <Row justify="center">
-            <Select
-              showSearch
-              optionFilterProp="label"
-              options={options}
-              loading={voicesQuery.isFetching || voicesQuery.isLoading}
-              onChange={(value) => setVoice(value as string)}
-              style={{
-                width: 240,
-              }}
-              value={voice}
-            />
-          </Row>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Text to Convert</label>
+              <Textarea
+                value={text}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setText(e.target.value)}
+                placeholder="Enter text to convert to speech..."
+                className="min-h-[200px] text-base"
+                rows={10}
+              />
+            </div>
 
-          <Row justify="center">
-            <Space>
-              <Button disabled={disable} onClick={play} loading={isFetchingStream} >
-                Play
+            <div className="flex justify-center">
+              <audio ref={audioRef} controls className="w-full max-w-md" />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Voice Selection</label>
+              <Select
+                value={voice}
+                onValueChange={(value: string) => setVoice(value)}
+                disabled={voicesQuery.isFetching || voicesQuery.isLoading}
+              >
+                <SelectTrigger className="w-full max-w-sm mx-auto">
+                  <SelectValue placeholder="Select a voice..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {options.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex justify-center gap-4">
+              <Button
+                disabled={disable}
+                onClick={play}
+                size="lg"
+                className="min-w-32"
+              >
+                {isFetchingStream ? (
+                  <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <PlayIcon className="mr-2 h-4 w-4" />
+                )}
+                {isFetchingStream ? 'Loading...' : 'Play'}
               </Button>
-              <Button disabled={disable} onClick={download}>
-                Download MP3
+              <Button
+                disabled={disable}
+                onClick={download}
+                variant="outline"
+                size="lg"
+                className="min-w-32"
+              >
+                {isDownloading ? (
+                  <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <DownloadIcon className="mr-2 h-4 w-4" />
+                )}
+                {isDownloading ? 'Downloading...' : 'Download MP3'}
               </Button>
-            </Space>
-          </Row>
-        </Space>
-      </Layout.Content>
-    </Layout>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };

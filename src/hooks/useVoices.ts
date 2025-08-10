@@ -1,8 +1,10 @@
-import { useQuery } from "react-query";
+import { useQuery } from "@tanstack/react-query";
 import { fetchVoices } from "../queries";
 
 export function useVoices() {
-  return useQuery(['voices'], () => fetchVoices(), {
+  return useQuery({
+    queryKey: ['voices'],
+    queryFn: () => fetchVoices(),
     staleTime: Infinity,
   });
 }
