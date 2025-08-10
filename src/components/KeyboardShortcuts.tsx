@@ -1,4 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Keyboard, ChevronDown, ChevronUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface KeyboardShortcutsProps {
   audioElement: HTMLAudioElement | null;
@@ -104,17 +106,72 @@ export const useKeyboardShortcuts = ({
 };
 
 export const KeyboardShortcutsHelp = () => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   return (
-    <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 text-sm">
-      <h3 className="font-medium text-gray-900 dark:text-white mb-2">Keyboard Shortcuts</h3>
-      <div className="grid grid-cols-2 gap-2 text-gray-600 dark:text-gray-300">
-        <div><kbd className="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs">Space</kbd> Play/Pause</div>
-        <div><kbd className="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs">Ctrl+S</kbd> Stop</div>
-        <div><kbd className="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs">←/→</kbd> Skip ±10s</div>
-        <div><kbd className="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs">↑/↓</kbd> Volume</div>
-        <div><kbd className="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs">M</kbd> Mute</div>
-        <div><kbd className="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs">Ctrl+D</kbd> Download</div>
-      </div>
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border-0 overflow-hidden">
+      <Button
+        variant="ghost"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full p-6 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+            <Keyboard className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+          </div>
+          <span className="text-lg font-semibold text-gray-900 dark:text-white">
+            Keyboard Shortcuts
+          </span>
+        </div>
+        {isExpanded ? (
+          <ChevronUp className="w-5 h-5 text-gray-500" />
+        ) : (
+          <ChevronDown className="w-5 h-5 text-gray-500" />
+        )}
+      </Button>
+      
+      {isExpanded && (
+        <div className="px-6 pb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <span className="text-gray-700 dark:text-gray-300">Play/Pause</span>
+              <kbd className="px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono text-gray-900 dark:text-gray-100">
+                Space
+              </kbd>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <span className="text-gray-700 dark:text-gray-300">Stop</span>
+              <kbd className="px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono text-gray-900 dark:text-gray-100">
+                Ctrl+S
+              </kbd>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <span className="text-gray-700 dark:text-gray-300">Skip ±10 seconds</span>
+              <kbd className="px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono text-gray-900 dark:text-gray-100">
+                ←/→
+              </kbd>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <span className="text-gray-700 dark:text-gray-300">Volume control</span>
+              <kbd className="px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono text-gray-900 dark:text-gray-100">
+                ↑/↓
+              </kbd>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <span className="text-gray-700 dark:text-gray-300">Mute toggle</span>
+              <kbd className="px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono text-gray-900 dark:text-gray-100">
+                M
+              </kbd>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <span className="text-gray-700 dark:text-gray-300">Download audio</span>
+              <kbd className="px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono text-gray-900 dark:text-gray-100">
+                Ctrl+D
+              </kbd>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

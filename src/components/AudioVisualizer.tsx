@@ -15,6 +15,7 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
   const analyserRef = useRef<AnalyserNode | null>(null);
   const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     if (!audioElement || !canvasRef.current) return;
@@ -53,61 +54,120 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
 
     // Initialize when audio starts playing
     const handlePlay = () => {
+      setIsPlaying(true);
       if (!isInitialized) {
         initializeAudioContext();
       }
     };
 
+    const handlePause = () => {
+      setIsPlaying(false);
+    };
+
+    const handleEnded = () => {
+      setIsPlaying(false);
+    };
+
     audioElement.addEventListener('play', handlePlay);
+    audioElement.addEventListener('pause', handlePause);
+    audioElement.addEventListener('ended', handleEnded);
 
     return () => {
       audioElement.removeEventListener('play', handlePlay);
+      audioElement.removeEventListener('pause', handlePause);
+      audioElement.removeEventListener('ended', handleEnded);
     };
   }, [audioElement, isInitialized]);
 
   useEffect(() => {
-    if (!isInitialized || !analyserRef.current || !canvasRef.current) return;
+    if (!canvasRef.current) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    const analyser = analyserRef.current;
     
     if (!ctx) return;
 
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-
-    const draw = () => {
-      if (!ctx || !analyser) return;
-
-      analyser.getByteFrequencyData(dataArray);
-
-      // Set canvas size
+    const drawPlaceholder = () => {
       const rect = canvas.getBoundingClientRect();
       canvas.width = rect.width * window.devicePixelRatio;
       canvas.height = rect.height * window.devicePixelRatio;
       ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
-      // Clear canvas
-      ctx.fillStyle = 'rgb(243, 244, 246)'; // bg-gray-100
+      // Clear canvas with gradient background
+      const gradient = ctx.createLinearGradient(0, 0, rect.width, 0);
+      gradient.addColorStop(0, 'rgb(239, 246, 255)'); // blue-50
+      gradient.addColorStop(1, 'rgb(238, 242, 255)'); // indigo-50
+      ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, rect.width, rect.height);
 
-      // Draw frequency bars
-      const barWidth = rect.width / bufferLength;
-      let x = 0;
-
-      for (let i = 0; i < bufferLength; i++) {
-        const barHeight = (dataArray[i] / 255) * rect.height * 0.8;
+      // Draw static placeholder bars
+      const numBars = 64;
+      const barWidth = rect.width / numBars;
+      
+      for (let i = 0; i < numBars; i++) {
+        // Create varied heights for visual interest
+        const barHeight = (Math.sin(i * 0.1) * 0.3 + 0.4) * rect.height * 0.3;
+        const x = i * barWidth;
         
-        // Create gradient
-        const gradient = ctx.createLinearGradient(0, rect.height, 0, rect.height - barHeight);
-        gradient.addColorStop(0, 'rgb(59, 130, 246)'); // blue-500
-        gradient.addColorStop(1, 'rgb(147, 197, 253)'); // blue-300
+        // Create gradient for bars
+        const barGradient = ctx.createLinearGradient(0, rect.height, 0, rect.height - barHeight);
+        barGradient.addColorStop(0, 'rgb(191, 219, 254)'); // blue-200
+        barGradient.addColorStop(1, 'rgb(165, 180, 252)'); // indigo-300
         
-        ctx.fillStyle = gradient;
+        ctx.fillStyle = barGradient;
         ctx.fillRect(x, rect.height - barHeight, barWidth - 1, barHeight);
+      }
+
+      // Add text overlay
+      ctx.fillStyle = 'rgb(99, 102, 241)'; // indigo-500
+      ctx.font = '14px system-ui, -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Audio visualization will appear here when playing', rect.width / 2, rect.height / 2 + 5);
+    };
+
+    const draw = () => {
+      if (!isInitialized || !analyserRef.current || !isPlaying) {
+        drawPlaceholder();
+        if (!isPlaying) {
+          return; // Don't continue animation if not playing
+        }
+      } else {
+        const analyser = analyserRef.current;
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
         
-        x += barWidth;
+        analyser.getByteFrequencyData(dataArray);
+
+        // Set canvas size
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * window.devicePixelRatio;
+        canvas.height = rect.height * window.devicePixelRatio;
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+        // Clear canvas with gradient background
+        const gradient = ctx.createLinearGradient(0, 0, rect.width, 0);
+        gradient.addColorStop(0, 'rgb(239, 246, 255)'); // blue-50
+        gradient.addColorStop(1, 'rgb(238, 242, 255)'); // indigo-50
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, rect.width, rect.height);
+
+        // Draw frequency bars
+        const barWidth = rect.width / bufferLength;
+        let x = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+          const barHeight = (dataArray[i] / 255) * rect.height * 0.8;
+          
+          // Create gradient for bars
+          const barGradient = ctx.createLinearGradient(0, rect.height, 0, rect.height - barHeight);
+          barGradient.addColorStop(0, 'rgb(59, 130, 246)'); // blue-500
+          barGradient.addColorStop(1, 'rgb(99, 102, 241)'); // indigo-500
+          
+          ctx.fillStyle = barGradient;
+          ctx.fillRect(x, rect.height - barHeight, barWidth - 1, barHeight);
+          
+          x += barWidth;
+        }
       }
 
       animationFrameRef.current = requestAnimationFrame(draw);
@@ -121,7 +181,7 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [isInitialized]);
+  }, [isInitialized, isPlaying]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -141,7 +201,7 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
   return (
     <canvas
       ref={canvasRef}
-      className={`${className} bg-gray-100 rounded-md border`}
+      className={`${className} rounded-lg border-0`}
       style={{ display: 'block' }}
     />
   );
